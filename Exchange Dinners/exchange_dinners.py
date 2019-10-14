@@ -6,6 +6,7 @@ import sys
 import platform
 from docx import Document
 from docx.shared import Inches
+import re
 
 
 #
@@ -38,7 +39,31 @@ if(len(sys.argv) != 2):
 elif len(sys.argv) == 2:
     filename = sys.argv[1]
     print(filename)
-exchange_titles = {'Hertford', 'Jesus'}
+
+# GET THE NAMES OF THE COLLEGES YOU ARE EXCHANGING WITH
+exchange_titles = []
+with open(filename, 'r') as f:
+    # SKIP OVER THE FIRST ROW OF THE SPREADSHEET
+    next(f)
+    # FOR EACH REMAINING ROW IN THE SPREADSHEET, EXTRACT THE INFORMATION
+    for row in reader(f):
+        # FIND THE INDICES OF THE STARTS OF THE COLLEGES' NAMES
+        idx_starts_1 = [-1]
+        idx_starts_2 = [m.start() for m in re.finditer(';', row[3])]
+        idx_starts = idx_starts_1 + idx_starts_2
+        # FIND THE INDICES OF THE ENDS OF THE COLLEGES' NAMES
+        idx_ends_1 = [m.start() for m in re.finditer('Home', row[3])]
+        idx_ends_2 = [m.start() for m in re.finditer('Away', row[3])]
+        idx_ends = idx_ends_1 + idx_ends_2
+        idx_ends.sort()
+        # FOR EACH COLLEGE NAME, ADD IT TO THE LIST
+        for i, v in enumerate(idx_starts):
+            idx_start = idx_starts[i]
+            idx_end = idx_ends[i]
+            college = row[3][idx_start + 1:idx_end - 1]
+            exchange_titles.append(college)
+# REMOVE DUPLICATES FROM THE LIST
+exchange_titles = list(set(exchange_titles))
 
 diners_dict = {}
 for dinner in exchange_titles:
@@ -132,7 +157,6 @@ for dinner in exchange_titles:
 
     # SAVE NAMES OF DINERS TO A DICTIONARY
     diners_dict[dinner] = diners
-    print(diners_dict[dinner])
 
 # EXPORT TEXT TO A WORD DOCUMENT
 document = Document()
@@ -196,4 +220,4 @@ for exchange in exchange_titles:
     for diner in diners_dict[exchange]:
         p.add_run(f'{diner}\n')
     p.add_run('\n')
-document.save('Trinity.docx')
+document.save('Email.docx')
