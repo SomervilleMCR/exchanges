@@ -4,6 +4,7 @@ import random
 from csv import reader
 import sys
 import platform
+import re
 
 
 #
@@ -36,32 +37,57 @@ if(len(sys.argv) != 2):
 elif len(sys.argv) == 2:
     filename = sys.argv[1]
     print(filename)
-exchange_titles = {'Magdalen', 'Kellogg'}
+
+# GET THE NAMES OF THE COLLEGES YOU ARE EXCHANGING WITH
+exchange_titles = []
+with open(filename, 'r') as f:
+    # SKIP OVER THE FIRST ROW OF THE SPREADSHEET
+    next(f)
+    # FOR EACH REMAINING ROW IN THE SPREADSHEET, EXTRACT THE INFORMATION
+    for row in reader(f):
+        # FIND THE INDICES OF THE STARTS OF THE COLLEGES' NAMES
+        idx_starts_1 = [-2]
+        idx_starts_2 = [m.start() for m in re.finditer(',', row[2])]
+        idx_starts = idx_starts_1 + idx_starts_2
+        # FIND THE INDICES OF THE ENDS OF THE COLLEGES' NAMES
+        idx_ends_1 = [m.start() for m in re.finditer('Home', row[2])]
+        idx_ends_2 = [m.start() for m in re.finditer('Away', row[2])]
+        idx_ends = idx_ends_1 + idx_ends_2
+        idx_ends.sort()
+        # FOR EACH COLLEGE NAME, ADD IT TO THE LIST
+        for i, v in enumerate(idx_starts):
+            idx_start = idx_starts[i]
+            idx_end = idx_ends[i]
+            college = row[2][idx_start + 2:idx_end - 1]
+            exchange_titles.append(college)
+# REMOVE DUPLICATES FROM THE LIST
+exchange_titles = list(set(exchange_titles))
 
 for exchange in exchange_titles:
     print('Diners for ' + exchange)
     names = []
     home = []
     away = []
-    # emails = []  # Not relevant for wc exchanges
-    # dietary = []  # Not relevant for wc exchanges
-    # never = []  # Not relevant for wc exchanges
+    # emails = []  # NOT RELEVANT FOR WC EXCHANGES
+    # dietary = []  # NOT RELEVANT FOR WC EXCHANGES
+    # never = []  # NOT RELEVANT FOR WC EXCHANGES
     with open(filename, 'r') as f:
-        next(f)  # Skip over the first row of the spreadsheet
-        # For each remaining row in the spreadsheet, extract the information
+        # SKIP OVER THE FIRST ROW OF THE SPREADSHEET
+        next(f)
+        # FOR EACH REMAINING ROW IN THE SPREADSHEET, EXTRACT THE INFORMATION
         for row in reader(f):
             names.append(row[1])
-            # emails.append(row[2])  # Not relevant for wc exchanges
-            # never.append("No" in row[-2])  # Not relevant for wc exchanges
-            # dietary.append(row[-3])  # Not relevant for wc exchanges
+            # emails.append(row[2])  # NOT RELEVANT FOR WC EXCHANGES
+            # never.append("No" in row[-2])  # NOT RELEVANT FOR WC EXCHANGES
+            # dietary.append(row[-3])  # NOT RELEVANT FOR WC EXCHANGES
             attendance = row[2]
             home.append(exchange + ' Home' in attendance)
             away.append(exchange + ' Away' in attendance)
 
-    # This script was originally written in Python 2. However, in Python 3, the
-    # behaviour of the zip() and map() functions changed. The code below takes
-    # this into account and implements the old Python 2 behaviour even if it is
-    # run in Python 3.
+    # THIS SCRIPT WAS ORIGINALLY WRITTEN IN PYTHON 2. HOWEVER, IN PYTHON 3, THE
+    # BEHAVIOUR OF THE zip() AND map() FUNCTIONS CHANGES. THE CODE BELOW TAKES
+    # THIS INTO ACCOUNT AND IMPLEMENTS THE OLD PYTHON 2 BEHAVIOUR EVEN IF IT IS
+    # RUN IN PYTHON 3.
     python_version = int(platform.python_version()[0])
     if python_version == 2:
         legs = zip(home, away)
@@ -80,7 +106,7 @@ for exchange in exchange_titles:
     else:
         raise ValueError('The Python version is neither 2 nor 3')
     both_score = 5
-    # never_score = 5  # Not relevant for wc exchanges
+    # never_score = 5  # NOT RELEVANT FOR WC EXCHANGES
     scores = np.array(skip) * (1 + both_score * np.array(both))
 
     scores = scores.tolist()
@@ -89,7 +115,7 @@ for exchange in exchange_titles:
 
     print('')
 
-    # Put all the names into a virtual bag
+    # PUT ALL THE NAMES INTO A VIRTUAL BAG
     bag = []
     bounds = []
     total = 0
@@ -106,7 +132,7 @@ for exchange in exchange_titles:
         diners = diners + [bag[draw]]
         bag[:] = [x for x in bag if x != diners[-1]]
 
-    # Print the names of the diners you have draw out of the bag
+    # DRAW THE NAMES OF THE DINERS OUT OF THE VIRTUAL BAG
     num_scores = len([s for s in scores if s != 0])
     print('Order for ' + exchange + ' (' + str(num_scores) + ')')
     print('name,home,away')
@@ -120,8 +146,8 @@ for exchange in exchange_titles:
 
     print('\n\n')
 
-    # Export the names of the people who have made it onto the exchange ready
-    # to be copy-pasted into an email
+    # EXPORT THE NAMES OF THE PEOPLE WHO HAVE MADE IT ONTO THE EXCHANGE READY
+    # TO BE COPY-PASTED INTO AN EMAIL
     with open('{}.txt'.format(exchange), 'w') as f:
         for diner in diners:
             f.write(diner + '\n')
