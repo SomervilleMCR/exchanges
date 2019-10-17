@@ -47,18 +47,18 @@ with open(filename, 'r') as f:
     for row in reader(f):
         # FIND THE INDICES OF THE STARTS OF THE COLLEGES' NAMES
         idx_starts_1 = [-2]
-        idx_starts_2 = [m.start() for m in re.finditer(',', row[2])]
+        idx_starts_2 = [m.start() for m in re.finditer(',', row[3])]
         idx_starts = idx_starts_1 + idx_starts_2
         # FIND THE INDICES OF THE ENDS OF THE COLLEGES' NAMES
-        idx_ends_1 = [m.start() for m in re.finditer('Home', row[2])]
-        idx_ends_2 = [m.start() for m in re.finditer('Away', row[2])]
+        idx_ends_1 = [m.start() for m in re.finditer('Home', row[3])]
+        idx_ends_2 = [m.start() for m in re.finditer('Away', row[3])]
         idx_ends = idx_ends_1 + idx_ends_2
         idx_ends.sort()
         # FOR EACH COLLEGE NAME, ADD IT TO THE LIST
         for i, v in enumerate(idx_starts):
             idx_start = idx_starts[i]
             idx_end = idx_ends[i]
-            college = row[2][idx_start + 2:idx_end - 1]
+            college = row[3][idx_start + 2:idx_end - 1]
             exchange_titles.append(college)
 # REMOVE DUPLICATES FROM THE LIST
 exchange_titles = list(set(exchange_titles))
@@ -80,7 +80,7 @@ for exchange in exchange_titles:
             # emails.append(row[2])  # NOT RELEVANT FOR WC EXCHANGES
             # never.append("No" in row[-2])  # NOT RELEVANT FOR WC EXCHANGES
             # dietary.append(row[-3])  # NOT RELEVANT FOR WC EXCHANGES
-            attendance = row[2]
+            attendance = row[3]
             home.append(exchange + ' Home' in attendance)
             away.append(exchange + ' Away' in attendance)
 
