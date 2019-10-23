@@ -4,8 +4,9 @@ import random
 from csv import reader
 import sys
 import platform
+# INSTALL docx PACKAGE WITH:
+# pip install python-docx
 from docx import Document
-from docx.shared import Inches
 import re
 
 
