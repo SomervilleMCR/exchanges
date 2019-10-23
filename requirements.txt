@@ -1,0 +1,6 @@
+numpy
+random
+csv
+sys
+platform
+python-docx
